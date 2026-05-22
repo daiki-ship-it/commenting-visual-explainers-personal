@@ -1,5 +1,11 @@
 import { state, type QuoteContext } from './state';
 
+const FB_UI = '#fb-sidebar,#fb-toggle,#fb-popup';
+
+function isFbUi(target: EventTarget | null): boolean {
+  return !!(target as HTMLElement)?.closest?.(FB_UI);
+}
+
 export function getQuoteContext(range: Range): QuoteContext {
   let before = '', after = '';
   try {
@@ -16,8 +22,22 @@ export function getQuoteContext(range: Range): QuoteContext {
 }
 
 export function setupTextSelection(onRender: () => void, closePopup: () => void): void {
+  let pointerDown = false;
+
+  document.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (isFbUi(e.target)) return;
+    pointerDown = true;
+    if (state.selectedRect) closePopup();
+  });
+
   document.addEventListener('mouseup', (e) => {
-    if ((e.target as HTMLElement).closest('#fb-sidebar,#fb-toggle,#fb-popup')) return;
+    if (e.button !== 0) return;
+    if (!pointerDown) return;
+    pointerDown = false;
+    if (e.buttons !== 0) return;
+    if (isFbUi(e.target)) return;
+
     const sel = window.getSelection();
     const text = sel?.toString().trim();
     if (!text || !sel || sel.rangeCount === 0 || !state.username) return;
@@ -27,9 +47,5 @@ export function setupTextSelection(onRender: () => void, closePopup: () => void)
     state.selectedQuoteContext = getQuoteContext(range);
     state.popupContent = '';
     onRender();
-  });
-  document.addEventListener('mousedown', (e) => {
-    if ((e.target as HTMLElement).closest('#fb-popup')) return;
-    if (state.selectedRect) closePopup();
   });
 }

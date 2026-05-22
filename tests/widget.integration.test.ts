@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { USERNAME_KEY } from '../src/shared/constants';
 
 const WIDGET_JS = readFileSync(
   resolve(__dirname, '../public/widget.js'),
@@ -164,5 +165,74 @@ describe('widget.js SVG アイコン', () => {
     const closeBtn = sidebar!.querySelector('[data-action="close"]');
     expect(closeBtn).toBeTruthy();
     expect(closeBtn!.innerHTML).toContain('<svg');
+  });
+});
+
+function loadWidgetWithUser() {
+  window.localStorage.setItem(USERNAME_KEY, 'テストユーザー');
+  loadWidget();
+}
+
+function selectParagraphText() {
+  const p = document.querySelector('p')!;
+  const range = document.createRange();
+  range.selectNodeContents(p);
+  const sel = window.getSelection()!;
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function dispatchMouse(
+  type: 'mousedown' | 'mouseup',
+  target: HTMLElement,
+  buttons: number
+) {
+  target.dispatchEvent(
+    new MouseEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      buttons,
+    })
+  );
+}
+
+describe('widget.js テキスト選択とポップアップ', () => {
+  beforeEach(() => {
+    loadWidgetWithUser();
+    Range.prototype.getBoundingClientRect = () =>
+      ({
+        top: 10,
+        bottom: 30,
+        left: 10,
+        right: 100,
+        width: 90,
+        height: 20,
+        x: 10,
+        y: 10,
+        toJSON: () => ({}),
+      }) as DOMRect;
+  });
+
+  test('mousedown なしの mouseup ではポップアップを出さない', () => {
+    selectParagraphText();
+    const p = document.querySelector('p') as HTMLElement;
+    dispatchMouse('mouseup', p, 0);
+    const popup = document.getElementById('fb-popup');
+    expect(popup?.classList.contains('show')).toBe(false);
+  });
+
+  test('ボタンを押したままの mouseup ではポップアップを出さない', () => {
+    selectParagraphText();
+    const p = document.querySelector('p') as HTMLElement;
+    dispatchMouse('mousedown', p, 1);
+    dispatchMouse('mouseup', p, 1);
+    const popup = document.getElementById('fb-popup');
+    expect(popup?.classList.contains('show')).toBe(false);
+  });
+
+  test('ビルド済み widget.js にボタン離し判定が含まれる', () => {
+    expect(WIDGET_JS).toMatch(/buttons!==0|buttons!=0/);
+    expect(WIDGET_JS).toMatch(/mousedown.*mouseup|mouseup.*mousedown/s);
   });
 });
