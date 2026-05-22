@@ -78,9 +78,10 @@ describe('widget.js 初期化', () => {
   test('サイドバーにフィルタボタンがある', () => {
     const sidebar = document.getElementById('fb-sidebar');
     const html = sidebar!.innerHTML;
-    expect(html).toContain('未解決');
-    expect(html).toContain('解決済');
-    expect(html).toContain('すべて');
+    expect(html).toContain('未返信');
+    expect(html).toContain('返信済');
+    expect(html).not.toContain('未解決');
+    expect(html).not.toContain('すべて');
   });
 
   test('サイドバーにリサイズハンドルがある', () => {
@@ -139,7 +140,7 @@ describe('widget.js コメントなし状態', () => {
   test('コメントゼロ時にサイドバーに空状態メッセージが表示される', () => {
     const sidebar = document.getElementById('fb-sidebar');
     const html = sidebar!.innerHTML;
-    expect(html).toContain('コメントはまだありません');
+    expect(html).toContain('未返信のコメントはありません');
   });
 
   test('コメントゼロ時にバッジが表示されない', () => {

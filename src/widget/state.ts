@@ -46,7 +46,7 @@ export interface WidgetState {
 export const state: WidgetState = {
   username: localStorage.getItem(USERNAME_KEY) || '',
   comments: [],
-  filter: 'unresolved',
+  filter: 'unreplied',
   sidebarOpen: false,
   selectedText: '',
   selectedQuoteContext: { beforeText: '', afterText: '' },

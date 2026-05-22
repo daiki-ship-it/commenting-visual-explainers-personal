@@ -15,6 +15,7 @@ import { state, slug, type FbComment } from './state';
 import { injectStyles } from './styles';
 import { render, toggleSidebar, setRenderDeps } from './render/index';
 import { setSidebarActions } from './render/sidebar';
+import { hasReplies } from './comments';
 import { applyHighlights } from './highlight';
 import { scrollToQuote, scrollToCard } from './scroll';
 import { setupTextSelection } from './selection';
@@ -55,17 +56,6 @@ function submitComment(): void {
   api('POST', c as unknown as Record<string, unknown>).then(loadComments);
 }
 
-function resolveComment(id: string): void {
-  const c = state.comments.find((x) => x.id === id);
-  if (!c) return;
-  const now = !c.resolved;
-  c.resolved = now;
-  c.resolvedBy = now ? state.username : null;
-  c.resolvedAt = now ? Date.now() : null;
-  render(); applyHighlights(onClickHighlight);
-  api('PUT', { id, action: 'resolve', resolved: now, resolvedBy: c.resolvedBy, resolvedAt: c.resolvedAt });
-}
-
 function deleteComment(id: string): void {
   state.comments = state.comments.filter((c) => c.id !== id && c.parentId !== id);
   render(); applyHighlights(onClickHighlight);
@@ -73,8 +63,13 @@ function deleteComment(id: string): void {
 }
 
 function deleteReply(id: string): void {
+  const reply = state.comments.find((c) => c.id === id);
   state.comments = state.comments.filter((c) => c.id !== id);
+  if (reply?.parentId && !hasReplies(state.comments, reply.parentId)) {
+    state.filter = 'unreplied';
+  }
   render();
+  applyHighlights(onClickHighlight);
   api('DELETE', { id });
 }
 
@@ -100,7 +95,9 @@ function submitReply(parentId: string): void {
   state.comments.push(r);
   state.replyingTo = null;
   state.replyText = '';
+  state.filter = 'replied';
   render();
+  applyHighlights(onClickHighlight);
   api('POST', r as unknown as Record<string, unknown>);
 }
 
@@ -124,7 +121,6 @@ setRenderDeps(closePopup, submitComment);
 setSidebarActions({
   toggleSidebar,
   scrollToQuote,
-  resolveComment,
   deleteComment,
   deleteReply,
   saveEdit,

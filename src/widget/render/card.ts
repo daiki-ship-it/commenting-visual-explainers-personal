@@ -6,13 +6,12 @@ import { state, type FbComment } from '../state';
 export function renderCard(c: FbComment): string {
   const isOwn = c.author === state.username;
 
-  let h = '<div class="fb-card' + (c.resolved ? ' resolved' : '') + '" data-id="' + c.id + '">';
+  let h = '<div class="fb-card" data-id="' + c.id + '">';
 
   h += '<div class="fb-card-head"><div class="fb-card-head-left">';
   h += '<div class="fb-avatar">' + esc(c.author.charAt(0)) + '</div>';
   h += '<span class="fb-author">' + esc(c.author) + '</span>';
   h += '<span class="fb-time">' + fmtTime(c.timestamp) + '</span>';
-  if (c.resolved) h += '<span class="fb-resolved-mark">' + icon('check', 12) + ' 解決済</span>';
   h += '</div></div>';
 
   if (c.quote) {
@@ -32,7 +31,6 @@ export function renderCard(c: FbComment): string {
   if (state.editingId !== c.id) {
     h += '<div class="fb-actions">';
     h += '<button class="fb-act" data-action="reply" data-id="' + c.id + '">' + icon('message', 12) + '返信</button>';
-    h += '<button class="fb-act res" data-action="resolve" data-id="' + c.id + '">' + (c.resolved ? icon('rotateCcw', 12) : icon('check', 12)) + (c.resolved ? '戻す' : '解決') + '</button>';
     if (isOwn) h += '<button class="fb-act" data-action="edit" data-id="' + c.id + '">' + icon('pencil', 12) + '編集</button>';
     if (isOwn) h += '<button class="fb-act del" data-action="delete" data-id="' + c.id + '">' + icon('trash', 12) + '削除</button>';
     h += '</div>';

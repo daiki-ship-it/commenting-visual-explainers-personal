@@ -1,3 +1,4 @@
+import { topLevelComments, hasReplies } from '../comments';
 import { el } from '../dom';
 import { icon } from '../icons';
 import { state } from '../state';
@@ -8,9 +9,11 @@ export function renderToggle(toggleSidebar: () => void): void {
     btn = el('button', { id: 'fb-toggle', onClick: toggleSidebar });
     document.body.appendChild(btn);
   }
-  const unresolvedCount = state.comments.filter((c) => !c.parentId && !c.resolved).length;
+  const unrepliedCount = topLevelComments(state.comments).filter(
+    (c) => !hasReplies(state.comments, c.id)
+  ).length;
   let h = '<span class="fb-toggle-icon">' + icon('panelRight', 16);
-  if (unresolvedCount > 0) h += '<span class="fb-badge">' + unresolvedCount + '</span>';
+  if (unrepliedCount > 0) h += '<span class="fb-badge">' + unrepliedCount + '</span>';
   h += '</span>';
   h += '<span class="fb-toggle-label">コメント</span>';
   btn.innerHTML = h;

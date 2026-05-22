@@ -1,3 +1,4 @@
+import { hasReplies } from './comments';
 import { state, type FbComment } from './state';
 
 function collectTextNodes(): Text[] {
@@ -57,7 +58,7 @@ export function applyHighlights(onClickHighlight: (id: string) => void): void {
   });
   document.body.normalize();
 
-  state.comments.filter((c) => !c.parentId && !c.resolved && c.quote && c.quote.length >= 2).forEach((c) => {
+  state.comments.filter((c) => !c.parentId && !hasReplies(state.comments, c.id) && c.quote && c.quote.length >= 2).forEach((c) => {
     const search = c.quote.replace(/[\s\u00A0]+/g, ' ').trim();
     const textNodes = collectTextNodes();
     let found = false;

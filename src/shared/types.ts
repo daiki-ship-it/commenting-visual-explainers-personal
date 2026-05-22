@@ -19,4 +19,4 @@ export interface Comment {
   pageUrl: string;
 }
 
-export type FilterMode = 'unresolved' | 'resolved' | 'all';
+export type FilterMode = 'unreplied' | 'replied';

@@ -1,5 +1,6 @@
 import type { FilterMode } from '../../shared/types';
 import { SIDEBAR_WIDTH_KEY } from '../../shared/constants';
+import { topLevelComments, hasReplies } from '../comments';
 import { el, esc } from '../dom';
 import { icon } from '../icons';
 import { state } from '../state';
@@ -22,13 +23,12 @@ export function toggleSidebar(): void {
   applySidebarWidth();
 }
 
-function topLevel() { return state.comments.filter((c) => !c.parentId); }
-
 function filtered() {
-  const tl = topLevel();
-  if (state.filter === 'resolved') return tl.filter((c) => c.resolved);
-  if (state.filter === 'all') return tl;
-  return tl.filter((c) => !c.resolved);
+  const tl = topLevelComments(state.comments);
+  if (state.filter === 'replied') {
+    return tl.filter((c) => hasReplies(state.comments, c.id));
+  }
+  return tl.filter((c) => !hasReplies(state.comments, c.id));
 }
 
 export function renderSidebar(onRender: () => void): void {
@@ -53,17 +53,16 @@ export function renderSidebar(onRender: () => void): void {
   }
   applySidebarWidth();
 
-  const tl = topLevel();
+  const tl = topLevelComments(state.comments);
   const counts = {
-    unresolved: tl.filter((c) => !c.resolved).length,
-    resolved: tl.filter((c) => c.resolved).length,
-    all: tl.length,
+    unreplied: tl.filter((c) => !hasReplies(state.comments, c.id)).length,
+    replied: tl.filter((c) => hasReplies(state.comments, c.id)).length,
   };
 
   let html = '<div class="fb-resize-handle"></div>';
 
   html += '<div class="fb-header">';
-  html += '<div class="fb-header-left"><span class="fb-header-title">コメント</span><span class="fb-header-count">' + counts.all + '</span></div>';
+  html += '<div class="fb-header-left"><span class="fb-header-title">コメント</span><span class="fb-header-count">' + tl.length + '</span></div>';
   html += '<div class="fb-header-actions">';
   html += '<button class="fb-hdr-btn" data-action="close" title="閉じる">' + icon('x', 18) + '</button>';
   html += '</div></div>';
@@ -77,8 +76,8 @@ export function renderSidebar(onRender: () => void): void {
   }
 
   html += '<div class="fb-filters">';
-  (['unresolved', 'resolved', 'all'] as const).forEach((f) => {
-    const label = f === 'unresolved' ? '未解決' : f === 'resolved' ? '解決済' : 'すべて';
+  (['unreplied', 'replied'] as const).forEach((f) => {
+    const label = f === 'unreplied' ? '未返信' : '返信済';
     html += '<button class="fb-filter' + (state.filter === f ? ' active' : '') + '" data-filter="' + f + '">' + label + '<span class="cnt">' + counts[f] + '</span></button>';
   });
   html += '</div>';
@@ -86,7 +85,10 @@ export function renderSidebar(onRender: () => void): void {
   const items = filtered().sort((a, b) => b.timestamp - a.timestamp);
   html += '<div class="fb-list">';
   if (items.length === 0) {
-    html += '<div class="fb-empty">' + icon('message', 40) + 'コメントはまだありません<br><span style="font-size:11px">テキストを選択してコメントを追加</span></div>';
+    const emptyMsg = state.filter === 'replied'
+      ? '返信済のコメントはありません'
+      : '未返信のコメントはありません<br><span style="font-size:11px">テキストを選択してコメントを追加</span>';
+    html += '<div class="fb-empty">' + icon('message', 40) + emptyMsg + '</div>';
   } else {
     items.forEach((c) => { html += renderCard(c); });
   }
@@ -99,7 +101,6 @@ export function renderSidebar(onRender: () => void): void {
 export interface SidebarActions {
   toggleSidebar: () => void;
   scrollToQuote: (id: string) => void;
-  resolveComment: (id: string) => void;
   deleteComment: (id: string) => void;
   deleteReply: (id: string) => void;
   saveEdit: (id: string) => void;
@@ -124,7 +125,6 @@ function bindSidebarEvents(sb: HTMLElement, onRender: () => void): void {
       else if (action === 'edit-name') { state.editingName = true; state.nameInput = state.username; onRender(); }
       else if (action === 'scroll-quote' && id) { _actions?.scrollToQuote(id); }
       else if (action === 'reply' && id) { state.replyingTo = state.replyingTo === id ? null : id; state.replyText = ''; onRender(); }
-      else if (action === 'resolve' && id) { _actions?.resolveComment(id); }
       else if (action === 'edit' && id) { const c = state.comments.find((x) => x.id === id); if (c) { state.editingId = id; state.editContent = c.content; onRender(); } }
       else if (action === 'delete' && id) { _actions?.deleteComment(id); }
       else if (action === 'delete-reply' && id) { _actions?.deleteReply(id); }
