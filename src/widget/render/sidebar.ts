@@ -1,4 +1,4 @@
-import type { Priority, FilterMode } from '../../shared/types';
+import type { FilterMode } from '../../shared/types';
 import { SIDEBAR_WIDTH_KEY } from '../../shared/constants';
 import { el, esc } from '../dom';
 import { icon } from '../icons';
@@ -98,7 +98,6 @@ export function renderSidebar(onRender: () => void): void {
 
 export interface SidebarActions {
   toggleSidebar: () => void;
-  cyclePriority: (id: string) => void;
   scrollToQuote: (id: string) => void;
   resolveComment: (id: string) => void;
   deleteComment: (id: string) => void;
@@ -123,17 +122,15 @@ function bindSidebarEvents(sb: HTMLElement, onRender: () => void): void {
 
       if (action === 'close') { _actions?.toggleSidebar(); }
       else if (action === 'edit-name') { state.editingName = true; state.nameInput = state.username; onRender(); }
-      else if (action === 'cycle' && id) { _actions?.cyclePriority(id); }
       else if (action === 'scroll-quote' && id) { _actions?.scrollToQuote(id); }
       else if (action === 'reply' && id) { state.replyingTo = state.replyingTo === id ? null : id; state.replyText = ''; onRender(); }
       else if (action === 'resolve' && id) { _actions?.resolveComment(id); }
-      else if (action === 'edit' && id) { const c = state.comments.find((x) => x.id === id); if (c) { state.editingId = id; state.editContent = c.content; state.editPriority = c.priority; onRender(); } }
+      else if (action === 'edit' && id) { const c = state.comments.find((x) => x.id === id); if (c) { state.editingId = id; state.editContent = c.content; onRender(); } }
       else if (action === 'delete' && id) { _actions?.deleteComment(id); }
       else if (action === 'delete-reply' && id) { _actions?.deleteReply(id); }
       else if (action === 'cancel-edit') { state.editingId = null; onRender(); }
       else if (action === 'save-edit' && id) { _actions?.saveEdit(id); }
       else if (action === 'submit-reply' && id) { _actions?.submitReply(id); }
-      else if (action === 'set-edit-pri') { state.editPriority = t.dataset.pri as Priority; onRender(); }
       return;
     }
     const filterBtn = (e.target as HTMLElement).closest('[data-filter]') as HTMLElement | null;

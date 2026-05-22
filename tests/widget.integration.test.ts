@@ -107,12 +107,11 @@ describe('widget.js ハイライト CSS', () => {
     loadWidget();
   });
 
-  test('ハイライトスタイルが優先度別に3色定義されている', () => {
+  test('ハイライトスタイルが定義されている', () => {
     const style = document.getElementById('fb-widget-styles');
     const css = style!.textContent || '';
-    expect(css).toContain('.fb-highlight-must');
-    expect(css).toContain('.fb-highlight-better');
-    expect(css).toContain('.fb-highlight-want');
+    expect(css).toContain('.fb-highlight');
+    expect(css).not.toContain('.fb-highlight-must');
   });
 
   test('カードスタイルが定義されている', () => {
@@ -120,14 +119,14 @@ describe('widget.js ハイライト CSS', () => {
     const css = style!.textContent || '';
     expect(css).toContain('.fb-card');
     expect(css).toContain('.fb-card-head');
-    expect(css).toContain('.fb-badge-p');
+    expect(css).not.toContain('.fb-badge-p');
   });
 
   test('ポップアップスタイルが定義されている', () => {
     const style = document.getElementById('fb-widget-styles');
     const css = style!.textContent || '';
     expect(css).toContain('.fb-popup');
-    expect(css).toContain('.fb-popup-pri');
+    expect(css).not.toContain('.fb-popup-pri');
     expect(css).toContain('.fb-popup-actions');
   });
 });

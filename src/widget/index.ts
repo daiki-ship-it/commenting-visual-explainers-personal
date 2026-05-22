@@ -8,8 +8,7 @@ const SCRIPT = document.currentScript as HTMLScriptElement | null;
 const API_BASE = SCRIPT ? SCRIPT.src.replace(/\/widget\.js.*$/, '') : '';
 const API_TOKEN = SCRIPT ? (SCRIPT.dataset.token || '') : '';
 
-import type { Priority } from '../shared/types';
-import { USERNAME_KEY, PRIORITY_CYCLE } from '../shared/constants';
+import { USERNAME_KEY } from '../shared/constants';
 import { generateId } from '../shared/slug';
 import { initApi, api } from './api';
 import { state, slug, type FbComment } from './state';
@@ -37,17 +36,16 @@ function closePopup(): void {
   state.selectedText = '';
   state.selectedRect = null;
   state.popupContent = '';
-  state.popupPriority = 'must';
   render();
 }
 
-function submitComment(priority: Priority): void {
+function submitComment(): void {
   if (!state.username || !state.selectedText) return;
   const c: FbComment = {
     id: generateId(), author: state.username, type: 'comment',
     quote: state.selectedText, quoteContext: state.selectedQuoteContext,
     content: state.popupContent.trim(),
-    priority, parentId: null, pageUrl: window.location.href,
+    priority: 'want', parentId: null, pageUrl: window.location.href,
     projectSlug: slug, timestamp: Date.now(),
     resolved: false, resolvedBy: null, resolvedAt: null, updatedAt: null,
   };
@@ -68,14 +66,6 @@ function resolveComment(id: string): void {
   api('PUT', { id, action: 'resolve', resolved: now, resolvedBy: c.resolvedBy, resolvedAt: c.resolvedAt });
 }
 
-function cyclePriority(id: string): void {
-  const c = state.comments.find((x) => x.id === id);
-  if (!c || c.author !== state.username) return;
-  c.priority = PRIORITY_CYCLE[c.priority] || 'must';
-  render(); applyHighlights(onClickHighlight);
-  api('PUT', { id, action: 'cyclePriority', priority: c.priority });
-}
-
 function deleteComment(id: string): void {
   state.comments = state.comments.filter((c) => c.id !== id && c.parentId !== id);
   render(); applyHighlights(onClickHighlight);
@@ -92,7 +82,6 @@ function saveEdit(id: string): void {
   const c = state.comments.find((x) => x.id === id);
   if (!c) return;
   c.content = state.editContent;
-  c.priority = state.editPriority;
   state.editingId = null;
   render(); applyHighlights(onClickHighlight);
   api('PUT', { id, action: 'edit', content: c.content, priority: c.priority });
@@ -134,7 +123,6 @@ function onClickHighlight(id: string): void {
 setRenderDeps(closePopup, submitComment);
 setSidebarActions({
   toggleSidebar,
-  cyclePriority,
   scrollToQuote,
   resolveComment,
   deleteComment,

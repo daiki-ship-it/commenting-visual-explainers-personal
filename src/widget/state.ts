@@ -36,12 +36,10 @@ export interface WidgetState {
   popupContent: string;
   editingId: string | null;
   editContent: string;
-  editPriority: Priority;
   replyingTo: string | null;
   replyText: string;
   editingName: boolean;
   nameInput: string;
-  popupPriority: Priority;
   sidebarWidth: number;
 }
 
@@ -56,12 +54,10 @@ export const state: WidgetState = {
   popupContent: '',
   editingId: null,
   editContent: '',
-  editPriority: 'want',
   replyingTo: null,
   replyText: '',
   editingName: false,
   nameInput: '',
-  popupPriority: 'must',
   sidebarWidth: parseInt(localStorage.getItem(SIDEBAR_WIDTH_KEY) || '', 10) || 400,
 };
 

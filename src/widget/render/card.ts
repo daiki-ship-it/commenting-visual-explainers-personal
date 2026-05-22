@@ -1,4 +1,3 @@
-import { PRIORITY_COLORS } from '../../shared/constants';
 import { fmtTime } from '../../shared/time';
 import { esc } from '../dom';
 import { icon } from '../icons';
@@ -6,33 +5,23 @@ import { state, type FbComment } from '../state';
 
 export function renderCard(c: FbComment): string {
   const isOwn = c.author === state.username;
-  const pc = PRIORITY_COLORS[c.priority] || PRIORITY_COLORS.want;
 
-  let h = '<div class="fb-card' + (c.resolved ? ' resolved' : '') + '" style="border-left-color:' + pc.bg + '" data-id="' + c.id + '">';
+  let h = '<div class="fb-card' + (c.resolved ? ' resolved' : '') + '" data-id="' + c.id + '">';
 
   h += '<div class="fb-card-head"><div class="fb-card-head-left">';
   h += '<div class="fb-avatar">' + esc(c.author.charAt(0)) + '</div>';
   h += '<span class="fb-author">' + esc(c.author) + '</span>';
   h += '<span class="fb-time">' + fmtTime(c.timestamp) + '</span>';
   if (c.resolved) h += '<span class="fb-resolved-mark">' + icon('check', 12) + ' 解決済</span>';
-  h += '</div>';
-  h += '<span class="fb-badge-p' + (isOwn ? ' own' : '') + '" style="background:' + pc.bg + '" data-action="cycle" data-id="' + c.id + '">' + esc(c.priority.charAt(0).toUpperCase() + c.priority.slice(1)) + '</span>';
-  h += '</div>';
+  h += '</div></div>';
 
   if (c.quote) {
     const q = c.quote.length > 100 ? c.quote.substring(0, 100) + '...' : c.quote;
-    h += '<div class="fb-quote" style="border-left-color:' + pc.bg + '" data-action="scroll-quote" data-id="' + c.id + '">' + esc(q) + '</div>';
+    h += '<div class="fb-quote" data-action="scroll-quote" data-id="' + c.id + '">' + esc(q) + '</div>';
   }
 
   if (state.editingId === c.id) {
     h += '<div class="fb-edit-area">';
-    h += '<div class="fb-edit-pri">';
-    (['must', 'better', 'want'] as const).forEach((p) => {
-      const sel = state.editPriority === p;
-      const pc2 = PRIORITY_COLORS[p];
-      h += '<button data-action="set-edit-pri" data-pri="' + p + '" style="' + (sel ? 'background:' + pc2.bg + ';color:#fff;border-color:' + pc2.bg : '') + '">' + p.charAt(0).toUpperCase() + p.slice(1) + '</button>';
-    });
-    h += '</div>';
     h += '<textarea data-action="edit-textarea">' + esc(state.editContent) + '</textarea>';
     h += '<div class="fb-edit-btns"><button data-action="cancel-edit">キャンセル</button><button class="save" data-action="save-edit" data-id="' + c.id + '">保存</button></div>';
     h += '</div>';

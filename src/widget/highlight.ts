@@ -39,7 +39,7 @@ function wrapTextRange(node: Text, start: number, end: number, comment: FbCommen
   const orig = node.textContent!;
   const before = document.createTextNode(orig.substring(0, start));
   const mark = document.createElement('mark');
-  mark.className = 'fb-highlight fb-highlight-' + comment.priority;
+  mark.className = 'fb-highlight';
   mark.dataset.commentId = comment.id;
   mark.textContent = orig.substring(start, end);
   mark.addEventListener('click', () => { onClickHighlight(comment.id); });
